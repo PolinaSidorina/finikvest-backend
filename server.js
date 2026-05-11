@@ -203,7 +203,7 @@ app.post('/api/admin/quests', async (req, res) => {
   }
   try {
     const result = await pool.query(
-      `INSERT INTO quests (title, descriprion, reward, type, x, y, steps)
+      `INSERT INTO quests (title, description, reward, type, x, y, steps)
       VALUES ($1,$2,$3,$4,$5,$6,$7)
       RETURNING *`,
       [title, description, reward, type, x, y, steps]
