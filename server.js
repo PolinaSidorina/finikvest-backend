@@ -182,6 +182,41 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+app.get('/api/quests', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM quests ORDER BY id');
+    const quests = result.rows.map((quest) => ({
+      ...quest,
+      steps: quest.steps,
+    }));
+    res.json(quests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка получения списка квестов' });
+  }
+});
+
+app.post('/api/admin/quests', async (req, res) => {
+  const { title, description, reward, type, x, y, steps } = req.body;
+  if (!title || !description || !reward || !type || !x || !y || !steps) {
+    return res.status(400).json({ error: 'Не хватает данных для создания квеста' });
+  }
+  try {
+    const result = await pool.query(
+      `INSERT INTO quests (title, descriprion, reward, type, x, y, steps)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING *`,
+      [title, description, reward, type, x, y, steps]
+    );
+    const newQuest = result.rows[0];
+    newQuest.steps = newQuest.steps;
+    res.status(201).json(newQuest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка создания квеста на сервере' });
+  }
+});
+
 module.exports = app;
 
 if (require.main === module) {
