@@ -202,6 +202,7 @@ app.post('/api/admin/quests', async (req, res) => {
     return res.status(400).json({ error: 'Не хватает данных для создания квеста' });
   }
   try {
+    const stepsJson = JSON.stringify(steps);
     const result = await pool.query(
       `INSERT INTO quests (title, description, reward, type, x, y, steps)
       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb)
