@@ -204,9 +204,9 @@ app.post('/api/admin/quests', async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO quests (title, description, reward, type, x, y, steps)
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb)
       RETURNING *`,
-      [title, description, reward, type, x, y, steps]
+      [title, description, reward, type, x, y, stepsJson]
     );
     const newQuest = result.rows[0];
     newQuest.steps = newQuest.steps;
@@ -225,12 +225,13 @@ app.put('/api/admin/quests/:id', async (req, res) => {
     return res.status(400).json({ error: 'Не хватает данных для обновления квеста' });
   }
   try {
+    const stepsJson = JSON.stringify(steps);
     const result = await pool.query(
       `UPDATE quests
       SET title=$1, description=$2,reward=$3, type=$4, x=$5, y=$6, steps=$7
       WHERE id=$8
       RETURNING *`,
-      [title, description, reward, type, x, y, steps, id]
+      [title, description, reward, type, x, y, stepsJson, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Квест не найден' });
