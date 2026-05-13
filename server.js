@@ -258,6 +258,67 @@ app.delete('/api/admin/quests/:id', async (req, res) => {
   }
 });
 
+app.post('/api/auth/send-verification', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email обязателен' });
+  }
+
+  try {
+    const result = await pool.query('SELECT id, is_verified FROM users WHERE email=$1', [email]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Пользователь не найден' });
+    const user = result.rows[0];
+    if (user.is_verified) {
+      return res.status(400).json({ error: 'Email уже подтвержден' });
+    }
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`Код для ${email}: ${verificationCode}`);
+
+    await pool.query('UPDATE users SET verification_code=$1 WHERE id=$2', [
+      verificationCode,
+      user.id,
+    ]);
+    //TODO
+    res.json({ success: true, message: 'Код подтверждения отправлен (проверьте консоль сервера)' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка при отправке кода' });
+  }
+});
+
+app.post('/api/auth/verify-email', async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Email и код обязательны' });
+  }
+  try {
+    const result = await pool.query(
+      'SELECT id, verification_code, is_verified FROM users WHERE email = $1',
+      [email]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const user = result.rows[0];
+    if (user.is_verified) {
+      return res.status(400).json({ error: 'Email уже подтверждён' });
+    }
+    if (user.verification_code !== code) {
+      return res.status(400).json({ error: 'Неверный код подтверждения' });
+    }
+    await pool.query(
+      'UPDATE users SET is_verified = true, verification_code = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    res.json({ success: true, message: 'Email успешно подтверждён!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка при подтверждении email' });
+  }
+});
+
 module.exports = app;
 
 if (require.main === module) {
