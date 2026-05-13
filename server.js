@@ -217,9 +217,9 @@ app.post('/api/admin/quests', async (req, res) => {
   }
 });
 
-app.put('api/admin/quests/:id', async (req, res) => {
+app.put('/api/admin/quests/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, description, reward, x, y, steps } = req.body;
+  const { title, description, reward, type, x, y, steps } = req.body;
 
   if (!title || !description || !reward || !type || !x || !y || !steps) {
     return res.status(400).json({ error: 'Не хватает данных для обновления квеста' });
@@ -227,7 +227,7 @@ app.put('api/admin/quests/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE quests
-      SET titile=$1, description=$2,reward=$3, type=$4, x=$5, y=$6, steps=$7
+      SET title=$1, description=$2,reward=$3, type=$4, x=$5, y=$6, steps=$7
       WHERE id=$8
       RETURNING *`,
       [title, description, reward, type, x, y, steps, id]
@@ -249,7 +249,7 @@ app.delete('/api/admin/quests/:id', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Квест не найден' });
     }
-    res.json({ succes: true, message: 'Квест удален' });
+    res.json({ success: true, message: 'Квест удален' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка удаления квеста' });
