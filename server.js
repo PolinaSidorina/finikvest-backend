@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 require('dotenv').config();
 
 const app = express();
@@ -272,14 +274,34 @@ app.post('/api/auth/send-verification', async (req, res) => {
       return res.status(400).json({ error: 'Email уже подтвержден' });
     }
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`Код для ${email}: ${verificationCode}`);
+    // console.log(`Код для ${email}: ${verificationCode}`);
 
     await pool.query('UPDATE users SET verification_code=$1 WHERE id=$2', [
       verificationCode,
       user.id,
     ]);
-    //TODO
-    res.json({ success: true, message: 'Код подтверждения отправлен (проверьте консоль сервера)' });
+
+    const { data, error } = await resend.emails.send({
+      from: 'Finikvest <onboarding@resend.dev>',
+      to: [email],
+      subject: 'Подтверждение email для Финиквест',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <h1 style="color: #0f172a;">🎮 Финиквест</h1>
+          <p>Ваш код подтверждения:</p>
+          <div style="font-size: 32px; font-weight: bold; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px; letter-spacing: 4px;">
+            ${verificationCode}
+          </div>
+          <p style="color: #666; font-size: 14px;">Введите этот код в приложении для завершения регистрации.</p>
+          <p style="color: #999; font-size: 12px;">Если вы не регистрировались в Финиквест, просто проигнорируйте это письмо.</p>
+        </div>
+      `,
+    });
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(500).json({ error: 'Ошибка отправки письма' });
+    }
+    res.json({ success: true, message: 'Код подтверждения отправлен на почту' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка при отправке кода' });
