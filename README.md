@@ -43,17 +43,17 @@ npm install
 
 PORT=5000
 
-DB*USER=postgres
+DB\*USER=postgres
 
 DB_HOST=localhost
 
 DB_NAME=finikvest_db
 
-DB_PASSWORD=ваш*пароль
+DB_PASSWORD=ваш\*пароль
 
-DB*PORT=5432
+DB\*PORT=5432
 
-RESEND_API_KEY=ваш_api*ключ
+RESEND_API_KEY=ваш_api\*ключ
 
 Создание базы данных:
 
@@ -62,69 +62,37 @@ RESEND_API_KEY=ваш_api*ключ
 -- Таблица пользователей
 
 CREATE TABLE IF NOT EXISTS users (
-
-    id SERIAL PRIMARY KEY,
-
-    username VARCHAR(100) NOT NULL,
-
-    email TEXT UNIQUE NOT NULL,
-
-    password_hash TEXT NOT NULL,
-
-    is_verified BOOLEAN DEFAULT FALSE,
-
-    verification_code TEXT,
-
-    created_at TIMESTAMP DEFAULT NOW()
-
+id SERIAL PRIMARY KEY,
+username VARCHAR(100) NOT NULL,
+email TEXT UNIQUE NOT NULL,
+password_hash TEXT NOT NULL,
+is_verified BOOLEAN DEFAULT FALSE,
+verification_code TEXT,
+created_at TIMESTAMP DEFAULT NOW()
 );
-
 -- Таблица прогресса
-
 CREATE TABLE IF NOT EXISTS user_progress (
-
-    id SERIAL PRIMARY KEY,
-
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-
-    balance INTEGER DEFAULT 0,
-
-    budget INTEGER DEFAULT 0,
-
-    covers JSONB DEFAULT '{"needs":0,"wants":0,"savings":0,"good":0}',
-    
-    completed_quests INTEGER[] DEFAULT '{}',
-
-    current_quest_id INTEGER,
-
-    goal JSONB DEFAULT NULL,
-
-    updated_at TIMESTAMP DEFAULT NOW()
-
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+balance INTEGER DEFAULT 0,
+budget INTEGER DEFAULT 0,
+covers JSONB DEFAULT '{"needs":0,"wants":0,"savings":0,"good":0}',
+completed_quests INTEGER[] DEFAULT '{}',
+current_quest_id INTEGER,
+goal JSONB DEFAULT NULL,
+updated_at TIMESTAMP DEFAULT NOW()
 );
-
 -- Таблица квестов
-
 CREATE TABLE IF NOT EXISTS quests (
-
-    id SERIAL PRIMARY KEY,
-
-    title TEXT NOT NULL,
-
-    description TEXT NOT NULL,
-
-    reward INTEGER NOT NULL,
-
-    type TEXT NOT NULL,
-
-    x TEXT NOT NULL,
-
-    y TEXT NOT NULL,
-
-    steps JSONB NOT NULL,
-
-    created_at TIMESTAMP DEFAULT NOW()
-
+id SERIAL PRIMARY KEY,
+title TEXT NOT NULL,
+description TEXT NOT NULL,
+reward INTEGER NOT NULL,
+type TEXT NOT NULL,
+x TEXT NOT NULL,
+y TEXT NOT NULL,
+steps JSONB NOT NULL,
+created_at TIMESTAMP DEFAULT NOW()
 );
 
 Запуск в режиме разработки:
